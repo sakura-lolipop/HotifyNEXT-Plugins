@@ -1,5 +1,7 @@
 # hooks — webhook 声明式插件
 
+> ⚠️ **权威版在生态仓 [HotifyNEXT-Plugins](https://gitee.com/sakura-lolipop/HotifyNEXT-Plugins)（GitHub 同名）**——本文件是源码仓开发副本，会滞后；对外引用/发给 AI 代写请用生态仓链接。
+
 > **想接入一个新服务？你不需要懂下面的任何规则。** 把本文件和那个服务的源码/文档地址，
 > 交给任意 AI 助手，说"给我接好它"——AI 会写插件、装好、（有源端凭证时）配好源端、
 > 触发真事件验证到你能收到通知为止（工作流见 §10 全自动模式）。你最多做的事：源端界面
@@ -7,7 +9,7 @@
 
 服务器开一扇门 `POST /hooks/{id}`。门后站一个**翻译员**，行为由一份 YAML 插件文件描述。
 插件是**纯数据**（无代码执行），任何人都能写：放进 `hooks/` 目录 + 重启 = 安装；删文件 = 卸载。
-官方发行版**不预装任何插件**（`examples/hooks/` 里的只是样例，见 §7）。
+官方发行版**不预装任何插件**（生态仓 HotifyNEXT-Plugins 的 `hooks/` 里有十份现成插件，见 §7）。
 
 **它不是什么**：不是脚本运行时（Gotify plugin 的坟头在那边）、不是市场（无 UI/无远程拉取）、
 不支持热加载（改插件需重启，与全仓"改配置需重启"一致）。
@@ -126,7 +128,7 @@ filter:
   equals:
     $.activityType: memos.memo.comment.created   # string 期望值
     $.memo.visibility: 2                         # number 期望值（YAML 原生不引号）——仅演示数字匹配；
-                                                 # 真实 memos 插件只按 activityType 过滤（examples/hooks/memos.yaml）
+                                                 # 真实 memos 插件只按 activityType 过滤（生态仓 hooks/memos.yaml）
 ```
 
 - `equals` 是 path → 期望值的 map，**多键 = AND**（全部相等才匹配）；`filter: {}`（空 equals）≡ 不写 filter（空 AND 条件集 = 永真）
@@ -194,7 +196,7 @@ examples:
   （源端文档/源码/真机抓包）。自造样本 = 循环验证，只验引擎不验现实（memos 官方文档落后于代码的教训）。
 - **契约型**（模板型源——healthchecks/n8n…body 全文由部署者在源端配置，无固定 wire）：插件作者
   在文件注释里定义 **canonical body**（部署指令的一部分——教部署者在源端怎么配；实物样板见
-  `examples/hooks/healthchecks.yaml` 与 `n8n` 同族），examples = canonical body 的实例。此时 examples
+  生态仓 `hooks/healthchecks.yaml` 与 `n8n` 同族），examples = canonical body 的实例。此时 examples
   验证的是**契约自洽**（部署者照指令配出的任何真实事件必然渲染出 expect 结果），字段取值语义须钉到
   源端占位符实现（如 `$NAME_JSON` 的 JSON 安全性）。**契约违例负样本合法**：body 由部署者控制，
   "漏必填字段"是真实可能形状——它是契约型的 filter-miss 等价物（正当地固化"漏字段→不产通知"）。
