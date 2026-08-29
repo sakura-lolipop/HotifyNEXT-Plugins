@@ -1,5 +1,11 @@
 # Hotify webhook 插件样板（语法教学用假想源，非真实服务）。
 # 规则全文见仓根 hooks.md——本文件是"照着抄"的最小完整例。
+#
+# ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_ECHO_SECRET 再放本文件——
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#  HOOKS_ECHO_SECRET = <自造任意串>——教学源没有真密钥，随手编一串演示即可
+#                     （真实插件里这一项是从源端抄真凭证/自造后两边同填，见 memos.yaml 范本）
+#
 # 安装：复制到工作目录 hooks/ 下 + 设 HOOKS_ECHO_SECRET 环境变量 + 重启 server。
 # （examples/hooks/ 只是样例仓，server 只加载工作目录的 ./hooks/，发行版不预装插件）
 

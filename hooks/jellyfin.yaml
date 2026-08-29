@@ -19,6 +19,12 @@
 # wire 形态判定（hooks.md §5）：模板型源——body 全文由部署者在源端 Template 配置 → 契约型。
 # canonical body 定义在本文件头（部署指令的一部分），examples = canonical 实例。
 #
+# ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_JELLYFIN_SECRET 再放本文件——
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#  HOOKS_JELLYFIN_SECRET = <你自造的随机串>（源端无密钥可抄、自己发明一个；两边同一串：本环境变量 +
+#                          Generic destination 的 Request Header X-Hotify-Token 值，裸值别加 Bearer，见第 4 步）
+#  <你的域名>            = 你的 Hotify 公网地址（Generic destination 的 Webhook Url 用，见第 4 步）
+#
 # ── 部署 5 步 ─────────────────────────────────────────────────────────
 # 1) Hotify：本文件放入工作目录 hooks/（Docker 即 /data/hooks，compose 挂 ./hooks:/data/hooks）
 #    + 设环境变量 HOOKS_JELLYFIN_SECRET=<自造随机串>（源端无密钥可抄，自己发明一个；

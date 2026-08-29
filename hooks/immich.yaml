@@ -17,6 +17,12 @@
 #   - payload.data.asset 字段集：server/src/repositories/workflow.repository.ts getForAssetV1
 #     （workflowAssetV1 列 + tags 数组 + exifInfo 对象|null，见 server/src/database.ts 列清单）。
 #
+# ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_IMMICH_SECRET 再放本文件——
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#  HOOKS_IMMICH_SECRET = <你自选的随机串>（两边同一串：本环境变量 + Immich "Trigger Webhook"
+#                        步骤的 Header value，原样别加 Bearer，见第 4 步）
+#  <你的-hotify-host>  = 你的 Hotify 公网地址（webhook 步骤的 URL 用，见第 4 步）
+#
 # ── 部署（共 5 步，两侧）────────────────────────────────────────────────
 # 1. Hotify 侧：本文件放入工作目录 hooks/ 下（Docker 部署 = /data/hooks，compose 挂载
 #    ./hooks:/data/hooks；挂错路径 = 静默零插件，hooks.md §1）。
@@ -34,6 +40,13 @@
 #        Method:       留空或 POST（选 PUT 则 Hotify 门不认，永不通知）
 #    （这四项是本插件 wire 契约的一部分：header 成对才随请求发出——static-token 验证的载体。）
 # 5. 详情页右上 "Enable" 启用 → 手机传一张新照片（或网页上传）→ 手机收到推送 = 端到端通。
+#
+# ── 排障 ─────────────────────────────────────────────────────────────────────
+# · 判据行：[hooks] immich delivered（stdout / docker logs 可见）；探针见第 2 步（401=已加载、
+#   404=没加载）。完整日志：本机=工作目录 hotify.log、docker=/data/hotify.log（filter miss 只在文件道）。
+# · 传了照片没通知：① workflow 忘了 Enable（新建默认禁用）；② 照片不是建 workflow 那个用户传的
+#   （workflow 按用户归属，只对创建者上传生效，见第 3 步）；③ webhook 步骤 Method 选了 PUT
+#   （Hotify 门只认 POST，见第 4 步）。首次全量备份 = 每照片一条的风暴（已知边界）。
 #
 # ⚠️ 已知边界（hooks/v1 表达力天花板 §8/§9 + 源端行为）：
 #   - **通知风暴**：AssetCreate 每照片一发、无聚合。首次全量备份几千张 = 几千条推送——

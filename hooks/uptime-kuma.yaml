@@ -6,6 +6,13 @@
 #   server/model/monitor.js —— 仅状态变化拍发通知（首拍 DOWN / *→DOWN / DOWN→UP，维护进出不通知）；
 #     msg = "[监控名] [✅ Up|🔴 Down] <心跳消息>"，顶层字符串自带全部语义；
 #     证书到期通知与「测试」按钮调用时 heartbeat/monitor 均为 null、只剩 msg。
+#
+# ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_UPTIME_KUMA_SECRET 再放本文件——
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#  HOOKS_UPTIME_KUMA_SECRET = <你自造的随机串>（两边同一串：本环境变量 + Kuma 通知 Additional
+#                            Headers 的 X-Hotify-Token 值，裸值别加 Bearer，见第 2 步）
+#  <Hotify 域名>            = 你的 Hotify 公网地址（Kuma 通知的 Post URL 用，见第 2 步）
+#
 # 安装（两侧都要配）：
 #   1) Hotify：本文件放工作目录 hooks/ + 设 HOOKS_UPTIME_KUMA_SECRET（compose environment: 块——
 #      GUI 部署不吃 .env，hooks.md §3.5）+ 重启 server。
@@ -18,6 +25,11 @@
 #                            （整值全等比较——不要加 "Bearer " 前缀，除非把前缀算进 secret 本体）
 #   3) 端到端验证（hooks.md §10 步骤5）＝点 Kuma 的「测试」按钮：手机应收到
 #      body 为 "<该通知的名字> Testing" 的推送；测试按钮变红 = header 值与 secret 不等（401）。
+# 排障：判据行 [hooks] uptime-kuma delivered（stdout / docker logs 可见；完整日志本机=工作目录
+#   hotify.log、docker=/data/hotify.log）。测试没红但手机没收到 = 第 2 步预设选错：Request Body
+#   选了 form-data（multipart 非 JSON 静默丢）或 custom（模板型 body 不适配本插件固定 mapping）、
+#   或 Method 选了 GET（无 body）。探针（hooks.md §1）：
+#   curl -X POST https://<Hotify 域名>/hooks/uptime-kuma → 401=已加载、404=没加载。
 # 已知边界（hooks/v1 表达力，§8/§9）：
 #   - 掉线(🔴)/恢复(✅) 语义已由源端拼进 msg（含 emoji），本模板无需条件文案；但"掉线高优先级/
 #     恢复低优先级"这类按事件取值不可表达（单 filter 单 mapping），故不设 priority。

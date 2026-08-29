@@ -9,6 +9,12 @@
 #   HttpRequestV3.node.ts）：JSON 是 body 序列化的默认路径（multipart/form-urlencoded/binaryData/raw
 #   才走特判分支），节点内无任何请求签名逻辑。
 #
+# ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_N8N_SECRET 再放本文件——
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#  HOOKS_N8N_SECRET = <你自造的随机串>（两边同一串：本环境变量 + HTTP Request 节点
+#                    X-Hotify-Token 的 Value，裸值别加 Bearer，见第 4 步）
+#  <你的域名>       = 你的 Hotify 公网地址（节点 URL 用，见第 3/4 步；n8n 云版要求公网可达，见备注）
+#
 # ── 源形态：模板型 → examples 用契约型（hooks.md §5）───────────────────
 # n8n 发什么 body 由你的工作流决定（HTTP Request 节点里配的模板），n8n 本身不定 wire 格式。
 # 本插件定义 canonical body 契约（部署指令的一部分，照抄即得）：
