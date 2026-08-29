@@ -1,9 +1,11 @@
 # Hotify 插件：Memos 评论通知（翻译自 Python 桥 gitee.com/Lishuhao-lucky/memos-webhook-hotify，master@2026-08-28）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 行为基线 = 桥的实现 + memos v0.30.0 发送侧源码（usememos/memos tag v0.30.0，internal/webhook/webhook.go）：
 #   仅「评论创建」事件推送（memo 新建/更新/删除静默忽略），Standard Webhooks 验签，标题/正文格式照搬桥的拼法。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_MEMOS_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_MEMOS_SECRET = <第 2 步 memos 建 webhook 后显示的 whsec_ 开头整串>
 #  <你的域名>         = 你的 Hotify 公网地址（如 https://push.example.com）
 #
@@ -19,6 +21,11 @@
 #    再去任意一条 memo 下发一条评论 → 手机收到「[Memos] 收到新评论 · …」= 端到端通
 #
 # ── 排障 ─────────────────────────────────────────────────────────────────────
+# · 排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+# · 主动问用户三问（按命中率序）：① secret 是 <第 2 步 memos 建 webhook 后显示的 whsec_ 开头
+#   整串> 原样整串照抄的吗（含 whsec_ 前缀——401 的头号成因）？② memos 侧 webhook 建好了吗
+#   （事件全选即可，filter 只放行评论——别的事件被拒属正常）？③ memos 在内网吗
+#   （MEMOS_ALLOW_PRIVATE_WEBHOOKS=true 配了吗——部署第 2 步 ⚠️ 行）？
 # · 判据行：[hooks] memos delivered（stdout/docker logs 可见）
 # · 装了没反应？404=目录挂错（§1 探针）；401=secret 与 memos 显示的串不一致（整串含 whsec_ 前缀照抄）
 # · 收到 200 但没通知=事件被 filter 拒（发了 memo 新建/更新——只放行评论，正常）；

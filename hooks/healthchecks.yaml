@@ -1,11 +1,13 @@
 # Hotify 插件：Healthchecks 服务挂了/恢复了通知
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # （翻译自 github.com/healthchecks/healthchecks 的 webhook 通知渠道——自托管健康检查服务，
 #   check 掉线（down）/恢复（up）时向用户预配置的 URL 发 HTTP 请求。无既有桥，行为基线 = 发送侧源码：
 #   master@094855b（2026-08-27）hc/integrations/webhook/transport.py + forms.py + hc/api/models.py::webhook_spec
 #   + hc/front/views.py::send_test_notification。）
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_HEALTHCHECKS_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_HEALTHCHECKS_SECRET = <你自造的纯字母数字随机串>（两边同一串：本环境变量 + HC 通道
 #                              Request Headers 的 X-Hotify-Token 值；纯字母数字是源端限制，见第 1 步）
 #  <你的-Hotify>             = 你的 Hotify 公网地址（HC 通道 down/up 的 URL 用，见第 2 步）
@@ -27,6 +29,12 @@
 #   （USE_TZ=True → 带时区偏移）。
 #
 # ── 排障 ──────────────────────────────────────────────────────────────────────
+# · 排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+# · 主动问用户三问（按命中率序）：① secret 是 <你自造的纯字母数字随机串> 原样整串照抄的吗
+#   （X-Hotify-Token 的值 == HOOKS_HEALTHCHECKS_SECRET，纯字母数字是源端限制）？② 源端
+#   down/up 两份 webhook 都建好且都改成 POST 并填 body 了吗（默认 GET 不发 body——两份独立
+#   配置，漏改一份就漏一半事件）？③ healthchecks 在内网吗（INTEGRATIONS_ALLOW_PRIVATE_IPS=True
+#   配了吗——部署第 2 步 ⚠️ 行，不配一条都发不出）？
 # · 判据行：`[hooks] healthchecks delivered`（stdout，docker logs 可见——启动时另有
 #   `[hooks] loaded N plugin(s): …` 确认行，N=0 = 目录没被看到）
 # · 日志位置：本机=工作目录 hotify.log；docker=/data/hotify.log（filter miss/401 只在文件道，

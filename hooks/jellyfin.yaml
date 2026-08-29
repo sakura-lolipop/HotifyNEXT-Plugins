@@ -1,4 +1,5 @@
 # Hotify 插件：Jellyfin 媒体库新入库通知（什么内容进库了）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 源 = 官方 Webhook 插件 github.com/jellyfin/jellyfin-plugin-webhook（master@2026-08-28 查证，
 # 现行发行 v21 / 2026-05-05；Jellyfin 核心自身无 webhook 能力，此插件是唯一官方通道）。
 # 行为基线 = 发送侧源码：
@@ -20,7 +21,8 @@
 # canonical body 定义在本文件头（部署指令的一部分），examples = canonical 实例。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_JELLYFIN_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_JELLYFIN_SECRET = <你自造的随机串>（源端无密钥可抄、自己发明一个；两边同一串：本环境变量 +
 #                          Generic destination 的 Request Header X-Hotify-Token 值，裸值别加 Bearer，见第 4 步）
 #  <你的域名>            = 你的 Hotify 公网地址（Generic destination 的 Webhook Url 用，见第 4 步）
@@ -51,6 +53,11 @@
 #    约 30 秒内手机收到 "[Jellyfin] 新入库 · …"。没收到：先看 Hotify 日志（401 = header 值
 #    与 secret 不等；fileOnly filter log = 事件没过筛），再按插件 README 开
 #    Jellyfin.Plugin.Webhook 的 debug 日志查源端是否发出。
+#    排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+#    主动问用户三问（按命中率序）：① secret 是 <你自造的随机串> 整串照抄的吗（Request Header
+#    的 X-Hotify-Token 值 == HOOKS_JELLYFIN_SECRET，裸值别加 Bearer）？② Generic destination
+#    建好且复选对了吗（Status=Enable、Notification Type 只勾 Item Added、Item Type 至少勾
+#    一项——一个不勾=静默不发、Template 整段照抄）？③ 源端在内网吗（SSRF 参数）？
 #
 # canonical body 模板（第 4 步 Template 原文，整段照抄；换行与缩进保留，均为 JSON 合法空白）：
 #   {

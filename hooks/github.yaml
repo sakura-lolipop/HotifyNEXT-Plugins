@@ -1,4 +1,5 @@
 # Hotify 插件：GitHub repository webhook「push」事件通知（谁推了 / 哪个仓 / 推了什么）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 行为基线 = GitHub 官方文档（webhooks 发送侧）：
 #   - 验签：docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
 #   - push 事件字段表：docs.github.com/en/webhooks/webhook-events-and-payloads#push
@@ -7,7 +8,8 @@
 #      webhook-events-and-payloads#push，字段集与 github.com 一致，仅多 enterprise 字段）
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_GITHUB_PUSH_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_GITHUB_PUSH_SECRET = <你将填进 GitHub webhook 表单 Secret 框的任意文本串>
 #                            （GitHub 允许任意文本串、无前缀；两边同一串：GitHub 侧 Secret 框 + 本环境变量）
 #  <你的域名>               = 你的 Hotify 公网地址（源端 Payload URL 用，见下）
@@ -28,9 +30,15 @@
 #
 # 验证（hooks.md §10c）：建 webhook 必到的 ping 手机不响是预期（本插件不产通知）；端到端 = 往仓库
 #   推一个 commit（真 push 事件）→ 手机收到「[GitHub] <pusher> → <repo>」= 全绿。
-# 排障：判据行 [hooks] github-push delivered（stdout / docker logs 可见；完整日志本机=工作目录
+# 排障：排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+#   判据行 [hooks] github-push delivered（stdout / docker logs 可见；完整日志本机=工作目录
 #   hotify.log、docker=/data/hotify.log）。装了没反应先查两处——① GitHub 侧 Content type 选成
 #   form-urlencoded（body 非 JSON：永不通知、只剩 stdout 日志）；② Secret 两边不一致（验签 401）。
+#   主动问用户三问（按命中率序）：① secret 是 <你将填进 GitHub webhook 表单 Secret 框的任意
+#   文本串> 原样整串照抄的吗（GitHub Secret 框与 HOOKS_GITHUB_PUSH_SECRET 两边同一串，即上方②）？
+#   ② 源端 webhook 建好且事件/触发器选对了吗（只勾 push、Content type=application/json——
+#   上方①即属这问）？③ 源端在内网吗（SSRF 参数）？——GitHub.com 从公网发来，此问反过来是：
+#   <你的域名> 公网可达吗？
 #   探针（hooks.md §1）：curl -X POST https://<你的域名>/hooks/github-push → 401=已加载、404=没加载。
 # 已知取舍（hooks/v1 表达力天花板，hooks.md §4.1/§8，刻意封顶非缺陷）：
 #   - 场景要的「几条 commit」不可表达：commits 是对象数组，白名单无下标、无循环、无 length，

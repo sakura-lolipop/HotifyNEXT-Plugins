@@ -1,4 +1,5 @@
 # Hotify 插件：Immich 新照片入库通知（手机备份/网页上传/CLI 导入新资产 → 手机推送）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # ⚠️ 版件要求：Immich v3.0.0+（2026-07-02 发布）。webhook 走的是 v3 新增的 workflow 子系统：
 #   v2.7.5（2026-04）整目录 packages/plugin-core 不存在（404 实测）；v3.0.0 与 v3.1.0（当前最新，
 #   2026-07-29）均含内置 "Trigger Webhook" 动作（packages/plugin-core/manifest.json，grep=1 实测两 tag）。
@@ -18,7 +19,8 @@
 #     （workflowAssetV1 列 + tags 数组 + exifInfo 对象|null，见 server/src/database.ts 列清单）。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_IMMICH_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_IMMICH_SECRET = <你自选的随机串>（两边同一串：本环境变量 + Immich "Trigger Webhook"
 #                        步骤的 Header value，原样别加 Bearer，见第 4 步）
 #  <你的-hotify-host>  = 你的 Hotify 公网地址（webhook 步骤的 URL 用，见第 4 步）
@@ -42,6 +44,11 @@
 # 5. 详情页右上 "Enable" 启用 → 手机传一张新照片（或网页上传）→ 手机收到推送 = 端到端通。
 #
 # ── 排障 ─────────────────────────────────────────────────────────────────────
+# · 排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+# · 主动问用户三问（按命中率序）：① secret 是 <你自选的随机串> 原样整串照抄的吗（Trigger
+#   Webhook 步骤的 Header value == HOOKS_IMMICH_SECRET，不加 Bearer）？② workflow 建好且
+#   配置对了吗（Enable 勾了、trigger=Asset Upload、Method=POST——下方①③两处隐患都属这问）？
+#   ③ 源端在内网吗（SSRF 参数）？
 # · 判据行：[hooks] immich delivered（stdout / docker logs 可见）；探针见第 2 步（401=已加载、
 #   404=没加载）。完整日志：本机=工作目录 hotify.log、docker=/data/hotify.log（filter miss 只在文件道）。
 # · 传了照片没通知：① workflow 忘了 Enable（新建默认禁用）；② 照片不是建 workflow 那个用户传的

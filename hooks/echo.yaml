@@ -1,13 +1,23 @@
 # Hotify webhook 插件样板（语法教学用假想源，非真实服务）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 规则全文见仓根 hooks.md——本文件是"照着抄"的最小完整例。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_ECHO_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_ECHO_SECRET = <自造任意串>——教学源没有真密钥，随手编一串演示即可
 #                     （真实插件里这一项是从源端抄真凭证/自造后两边同填，见 memos.yaml 范本）
 #
 # 安装：复制到工作目录 hooks/ 下 + 设 HOOKS_ECHO_SECRET 环境变量 + 重启 server。
 # （examples/hooks/ 只是样例仓，server 只加载工作目录的 ./hooks/，发行版不预装插件）
+#
+# 排障（真实插件的排障段是部署说明四件套之四，教学版也带上）：
+# 排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+#   三问（按命中率序）：① secret 是 <自造任意串> 整串照抄的吗（X-Echo-Token 的值与
+#   HOOKS_ECHO_SECRET 两边同一串——自造串也要两边一致）？② 发的「事件」对吗（filter 只放
+#   $.type: notify——发 audit 被静默拒是正常，见下方负样本）？③ 源端在内网吗（SSRF 参数）？
+#   ——教学源没有真实源端；真实插件里此问问的是源端出网到 Hotify 被拦（memos.yaml 范本的
+#   MEMOS_ALLOW_PRIVATE_WEBHOOKS=true 同款坑）。
 
 id: echo                     # URL 段：POST /hooks/echo；secret 变量名由它推导
 apiVersion: hooks/v1         # 引擎不认识的版本会拒绝加载

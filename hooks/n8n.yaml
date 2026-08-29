@@ -1,4 +1,5 @@
 # Hotify 插件：n8n 工作流通知（工作流任意一步 → HTTP Request 节点 → 手机推送）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 行为基线 = n8n 官方文档（docs.n8n.io，2026-08-28 查证）：
 #   - HTTP Request 节点参考页：7 种 method 含 POST；自定义 header = Send Headers → Specify Headers:
 #     Using Fields Below → Header Parameters（Name/Value 对，Add Parameter 加行）；body = Send Body →
@@ -10,7 +11,8 @@
 #   才走特判分支），节点内无任何请求签名逻辑。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_N8N_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_N8N_SECRET = <你自造的随机串>（两边同一串：本环境变量 + HTTP Request 节点
 #                    X-Hotify-Token 的 Value，裸值别加 Bearer，见第 4 步）
 #  <你的域名>       = 你的 Hotify 公网地址（节点 URL 用，见第 3/4 步；n8n 云版要求公网可达，见备注）
@@ -52,8 +54,14 @@
 #                    不要再裹引号）——n8n 官方转义函数，防 body 变非法 JSON；
 #                    引用可能缺的字段用 {{ $ifEmpty($json.字段, "") }} 兜底。
 # 5. 验证（hooks.md §10 步骤 5）：n8n 里点 Execute workflow（或该节点 Test step）→ 手机收到推送、
-#    server log 出现 [hooks] delivered。排障分流：节点红报 401 = header 值与 secret 不等；
+#    server log 出现 [hooks] delivered。排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+#    排障分流：节点红报 401 = header 值与 secret 不等；
 #    节点绿但没收到 = body 违反 canonical 契约（漏 title/message——查 server stdout log）。
+#    主动问用户三问（按命中率序）：① secret 是 <你自造的随机串> 原样整串照抄的吗（HTTP
+#    Request 节点 X-Hotify-Token 的 Value == HOOKS_N8N_SECRET，不加 Bearer 前缀）？② 节点
+#    建好且四项配对了吗（Method=POST、Send Headers、Send Body=JSON、title/message 两必填字段
+#    都在——漏必填字段=整条静默丢，见源形态段）？③ 源端在内网吗（SSRF 参数）？——n8n 云版
+#    反过来要求 <你的域名> 公网可达（见下方备注）。
 # 备注：n8n 云版要求 Hotify 域名公网可达；自托管 n8n 可走内网地址。多个工作流推同一 URL：
 #   各自重复第 4 步即可（第 1-3 步只做一次）。要只推一台设备：把下方 device 改成设备 slug 或 uuid。
 

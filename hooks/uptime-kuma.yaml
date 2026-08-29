@@ -1,4 +1,5 @@
 # Hotify 插件：Uptime Kuma 掉线/恢复通知（源 = github.com/louislam/uptime-kuma，master@2026-08-28 查证）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 行为基线 = 发送侧源码：
 #   server/notification-providers/webhook.js —— POST + "json" 预设下 body 恒为
 #     { "heartbeat": <心跳对象|null>, "monitor": <监控对象|null>, "msg": <字符串> }；
@@ -8,7 +9,8 @@
 #     证书到期通知与「测试」按钮调用时 heartbeat/monitor 均为 null、只剩 msg。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_UPTIME_KUMA_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_UPTIME_KUMA_SECRET = <你自造的随机串>（两边同一串：本环境变量 + Kuma 通知 Additional
 #                            Headers 的 X-Hotify-Token 值，裸值别加 Bearer，见第 2 步）
 #  <Hotify 域名>            = 你的 Hotify 公网地址（Kuma 通知的 Post URL 用，见第 2 步）
@@ -25,7 +27,12 @@
 #                            （整值全等比较——不要加 "Bearer " 前缀，除非把前缀算进 secret 本体）
 #   3) 端到端验证（hooks.md §10 步骤5）＝点 Kuma 的「测试」按钮：手机应收到
 #      body 为 "<该通知的名字> Testing" 的推送；测试按钮变红 = header 值与 secret 不等（401）。
-# 排障：判据行 [hooks] uptime-kuma delivered（stdout / docker logs 可见；完整日志本机=工作目录
+# 排障：排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+#   主动问用户三问（按命中率序）：① secret 是 <你自造的随机串> 原样整串照抄的吗（Additional
+#   Headers 的 X-Hotify-Token 值 == HOOKS_UPTIME_KUMA_SECRET，不加 Bearer 前缀）？② 通知建好
+#   且预设选对了吗（Method=POST、Request Body=application/json——form-data/custom/GET 都收
+#   不到，见下）？③ 源端在内网吗（SSRF 参数）？
+#   判据行 [hooks] uptime-kuma delivered（stdout / docker logs 可见；完整日志本机=工作目录
 #   hotify.log、docker=/data/hotify.log）。测试没红但手机没收到 = 第 2 步预设选错：Request Body
 #   选了 form-data（multipart 非 JSON 静默丢）或 custom（模板型 body 不适配本插件固定 mapping）、
 #   或 Method 选了 GET（无 body）。探针（hooks.md §1）：

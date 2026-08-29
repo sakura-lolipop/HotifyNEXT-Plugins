@@ -1,4 +1,5 @@
 # Hotify 插件：Sonarr 剧集入库通知（哪部剧 / 哪集 / 画质，手机推送）。
+# 🌐（给 AI：与用户的交互语言跟随用户；本文件为中文，产出说明用用户语言。）
 # 行为基线 = Sonarr 发送侧源码（github.com/Sonarr/Sonarr，tag v4.0.19.2979 = 当前稳定版，2026-08-28 查证；
 # v5-develop 分支同形）：src/NzbDrone.Core/Notifications/Webhook/ 下——
 #   WebhookProxy.cs    发送方式：POST（默认）/PUT + Content-Type application/json；**零签名、零自动 header**
@@ -17,7 +18,8 @@
 #   优先级以源码为准（memos/Grafana 两次实证文档可落后于代码）。
 #
 # ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_SONARR_SECRET 再放本文件——
-#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件；问可枚举的问题（内网？定向
+#     还是广播？）优先用 agent 结构化提问（选项式），凭证长串才粘贴式）──────────────────────
 #  HOOKS_SONARR_SECRET = <你自选的随机串，如 openssl rand -hex 16 的输出>（两边同一串：本环境变量 +
 #                        Sonarr Webhook Connection 高级设置 Headers 的 X-Hotify-Token 值，见第 2/4 步）
 #  <你的-hotify-域名>  = 你的 Hotify 公网地址（Connection 的 URL 用，见第 3 步）
@@ -40,6 +42,11 @@
 #    手机收到 "[Sonarr] <剧名>（<年份>）下载完成" 即全绿。
 #
 # ── 排障 ─────────────────────────────────────────────────────────────────────
+# · 排障顺序：日志先行（grep [hooks]）→ 问用户三问 → 最后才翻本文件字段（能装完=三关已过，文件几乎不可能是问题）。
+# · 主动问用户三问（按命中率序）：① secret 是 <你自选的随机串，如 openssl rand -hex 16 的
+#   输出> 原样整串照抄的吗（Show Advanced → Headers 的 X-Hotify-Token 值 == HOOKS_SONARR_SECRET）？
+#   ② Connection 建好且触发器勾对了吗（只勾 On File Import——勾成 "On Import Complete" 是
+#   复数 payload 形态会提取失败，见下）？③ 源端在内网吗（SSRF 参数）？
 # · 判据行：[hooks] sonarr delivered（stdout / docker logs 可见；启动另有 [hooks] loaded N
 #   plugin(s) 确认行，N=0 = hooks 目录没被看到）。完整日志：本机=工作目录 hotify.log、
 #   docker=/data/hotify.log（filter miss 只在文件道）。
