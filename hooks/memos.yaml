@@ -1,8 +1,29 @@
 # Hotify 插件：Memos 评论通知（翻译自 Python 桥 gitee.com/Lishuhao-lucky/memos-webhook-hotify，master@2026-08-28）。
 # 行为基线 = 桥的实现 + memos v0.30.0 发送侧源码（usememos/memos tag v0.30.0，internal/webhook/webhook.go）：
 #   仅「评论创建」事件推送（memo 新建/更新/删除静默忽略），Standard Webhooks 验签，标题/正文格式照搬桥的拼法。
-# 安装：复制到工作目录 hooks/ 下 + 设 HOOKS_MEMOS_SECRET（值 = memos 建 webhook 时显示的 whsec_... 完整串）
-#       + 重启 server（hooks.md §1/§3.5）。
+#
+# ── 你需要提供（执行安装的 AI：拿不到就停下问用户，禁止编造；先拿 HOOKS_MEMOS_SECRET 再放本文件——
+#     没配 secret 重启 server = 整个服务 fatal 起不来，不只本插件）──────────────────────
+#  HOOKS_MEMOS_SECRET = <第 2 步 memos 建 webhook 后显示的 whsec_ 开头整串>
+#  <你的域名>         = 你的 Hotify 公网地址（如 https://push.example.com）
+#
+# ── 部署 4 步 ─────────────────────────────────────────────────────────────────
+# 1. Hotify：docker 部署先加挂载行 ./hooks:/data/hooks（挂错=静默零插件，hooks.md §1）
+# 2. （这步先做——拿密钥）memos：设置 → Webhooks → 新建，URL 填 https://<你的域名>/hooks/memos，
+#    事件全选即可（filter 会只放行评论）；建好后复制显示的 whsec_ 开头整串
+#    ⚠️ memos 在内网/私网？需给 memos 加启动参数 MEMOS_ALLOW_PRIVATE_WEBHOOKS=true（SSRF 防护放行，
+#    自托管通病——healthchecks 同款坑叫 INTEGRATIONS_ALLOW_PRIVATE_IPS）
+# 3. Hotify：设环境变量 HOOKS_MEMOS_SECRET=<第 2 步复制的整串>（docker 走 compose environment: 块），
+#    本文件放进 hooks/ 目录
+# 4. 重启 server。docker logs 应见 [hooks] loaded 1 plugin(s): memos = 装好；
+#    再去任意一条 memo 下发一条评论 → 手机收到「[Memos] 收到新评论 · …」= 端到端通
+#
+# ── 排障 ─────────────────────────────────────────────────────────────────────
+# · 判据行：[hooks] memos delivered（stdout/docker logs 可见）
+# · 装了没反应？404=目录挂错（§1 探针）；401=secret 与 memos 显示的串不一致（整串含 whsec_ 前缀照抄）
+# · 收到 200 但没通知=事件被 filter 拒（发了 memo 新建/更新——只放行评论，正常）；
+#   连续没反应且源端确有评论=memos 侧 webhook 没发出（查第 2 步 SSRF 参数）
+#
 # 已知偏差（hooks/v1 表达力边界，见 hooks.md §8/§9）：
 #   - 桥给推送加 [YYYY-MM-DD HH:MM:SS] 时间戳前缀（hotify_send.py）、正文 500 字截断——
 #     hooks/v1 无函数调用/无当前时间，不可表达（Go 皮可补）。桥的 priority=4 已如实落
