@@ -100,8 +100,8 @@ verify:
 ```
 
 **显式 opt-in 的无验证**（不写 verify 是拒载的；写 none = 明知无签名而为之）。`device` 允许为空
-（广播）——"none 必须定向单台"的护栏**预留未启用**（2026-08-28 裁定：单用户自托管下垃圾可删，
-真被轰炸出 issue 再加）。
+（广播）——"none 必须定向单台"的护栏**预留未启用**（自托管场景广播可接受；
+被滥用再收紧）。
 known risk：公开端点，任何人 POST 即可推（广播=全部设备）；注意 payload 格式是开源公开知识，
 防不住"照文档编请求"。能用前三族就别用这族——源端支持自定义 header 时塞个 token 走 §3.3
 （自己发密码）永远更优。
@@ -272,7 +272,7 @@ Content-Type**——按原始字节做 JSON parse，源端发 text/plain 也能�
 - **源端有意重发型**（uptime-kuma resendInterval 重发告警 / GitHub 手动 redelivery）无 webhook-id 去重 → 必然重复通知（这是 feature，知情接受）
 - **零重发型**（Immich fire-and-forget 等）→ Hotify 宕机瞬间的事件即丢、源端不留痕——通知场景可接受，知情接受
 - **整数 >2^53 渲染丢精度**（float64 解析）→ `{{$.id}}` 对 snowflake 级 id 输出错数（Discord/Twitch/X；GitHub 未到）——真接 snowflake 源时换 `UseNumber()` 修
-- **ingest 瞬态失败（500）后的源端重试在 5min 去重窗内被吞**（at-most-once 语义）→ 单用户 bbolt 瞬态故障才触发，知情接受；真撞上（log 见 duplicate 与 500 相邻）改两段式记账
+- **ingest 瞬态失败（500）后的源端重试在 5min 去重窗内被吞**（at-most-once 语义）→ 数据库瞬态故障才触发，知情接受；真撞上（log 见 duplicate 与 500 相邻）改两段式记账
 - 时钟漂移 > 5min → standard-webhooks 全量 401（401 log 带 delta，一眼可诊）
 - 单 filter 单 mapping：一个源多事件要不同文案 → v1 不支持（将来 schema 一次性演进，模板外置改版无兼容负担）
 - 无热加载（重启生效）
